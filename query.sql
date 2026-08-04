@@ -28,3 +28,42 @@ CREATE TABLE Bookings (
     FOREIGN KEY (match_id) REFERENCES Matches(match_id) ON DELETE CASCADE
 );
 
+-- Attached 7 SQL queries 
+
+-- ১. JOIN ব্যবহার করে বুকিং ডিটেইলস
+SELECT u.full_name, m.fixture, b.seat_number, b.total_cost 
+FROM Users u 
+JOIN Bookings b ON u.user_id = b.user_id 
+JOIN Matches m ON b.match_id = m.match_id;
+
+-- ২. Subquery ব্যবহার করে সর্বোচ্চ মূল্যের টিকিট
+SELECT * FROM Bookings 
+WHERE total_cost > (SELECT AVG(total_cost) FROM Bookings);
+
+-- ৩. Aggregation (Sum) দিয়ে ম্যাচের মোট আয়
+SELECT m.fixture, SUM(b.total_cost) as total_revenue 
+FROM Matches m 
+JOIN Bookings b ON m.match_id = b.match_id 
+GROUP BY m.fixture;
+
+-- ৪. Pagination ব্যবহার করে ম্যাচের তালিকা
+SELECT * FROM Matches 
+ORDER BY base_ticket_price ASC 
+LIMIT 5 OFFSET 0;
+
+-- ৫. Aggregation (Count) দিয়ে জনপ্রিয় ম্যাচ
+SELECT match_id, COUNT(booking_id) as total_bookings 
+FROM Bookings 
+GROUP BY match_id 
+ORDER BY total_bookings DESC;
+
+-- ৬. Complex Join & Filter (Confirmed পেমেন্ট দেখা)
+SELECT u.email, m.fixture 
+FROM Users u 
+JOIN Bookings b ON u.user_id = b.user_id 
+JOIN Matches m ON b.match_id = m.match_id 
+WHERE b.payment_status = 'Confirmed';
+
+-- ৭. Subquery with In Clause (নির্দিষ্ট দলের ম্যাচ দেখা)
+SELECT * FROM Bookings 
+WHERE match_id IN (SELECT match_id FROM Matches WHERE fixture LIKE '%Argentina%');
